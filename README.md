@@ -1,65 +1,55 @@
-# Richter's Predictor: Modeling Earthquake Damage
+# Richter's Predictor: Earthquake Damage Prediction
 
-## Intro:
+Predicción del nivel de daño en edificios causado por el terremoto de Nepal 2015 usando Machine Learning.
 
-**Purpose:** Based on aspects of building location and construction, your goal is to predict the level of damage to buildings caused by the 2015 Gorkha earthquake in Nepal.
+## Resultados
 
-**Objetivo:** Mejorar la predicción del _benchmark_, que utiliza un algoritmo RandomForest y obtiene una **puntuación de 0.5815**.
+| Modelo | CV Score (F1-micro) | Mejora |
+|--------|---------------------|--------|
+| **XGBoost** | **0.7381** | **+25.3%** |
+| LightGBM | 0.7371 | +25.2% |
+| CatBoost | 0.7134 | +21.2% |
+| Baseline | 0.5815 | - |
 
-## Apsectos a mejorar del benchmark
+Dataset: 260,601 edificios | 38 features
 
-**1.⁠ ⁠Selección de features:**
+## Estructura del Proyecto
 
-•⁠  ⁠El modelo base ignora características de gran valor (usa 6 de 38)
 
-•⁠  ⁠⁠No usa, por ejemplo, localización/distancia al epicentro, edad del edificio, o tipo de superestructura/materiales
+## Metodología
 
-**2.⁠ ⁠Uso de ⁠ StandardScaler ⁠ innecesario:** RandomForest y otros modelos de árbol ignoran la escala de los datos; se basan en thresholds, no en distancias.
+**Feature Engineering:**
+- Edad del edificio (`age`)
+- Agregaciones geográficas (edad media, pisos por región)
+- Indicadores binarios de uso secundario
 
-**3.⁠ ⁠No se tiene en cuenta el desbalance de clases:**  ⁠El gráfico de barras muestra que la clase 2 (daño medio) domina sobre el resto, pero no se tiene en cuenta en la definición del modelo.
+**Modelos:**
+- LightGBM, XGBoost, CatBoost
+- StratifiedKFold (5 folds)
+- RandomizedSearchCV para hiperparámetros
+- Out-of-fold predictions
 
-•⁠  ⁠⁠`class_weight=‘balanced’` ⁠ ⁠ en RF
+**Mejor Modelo:** XGBoost con 0.7381 F1-score
 
-•⁠  ⁠⁠SMOTE u otras herramientas de resampleado
+## Reproducir
 
-•⁠  ⁠⁠Sampleado estratificado, uso de cross-validation
 
-**4.⁠ ⁠Búsqueda de hiperparámetros limitada:**
+## Features Más Importantes
 
-•⁠  ⁠Incluir `max_depth`⁠, `max_features`⁠, `min_samples_split`⁠, ⁠⁠`class_weight` ⁠⁠
+1. geo_level_2_id (localización específica)
+2. age (edad del edificio)
+3. count_floors_pre_eq (número de pisos)
+4. height_percentage (altura relativa)
+5. geo_level_1_id (región)
 
-**5. No hay comparación con otros modelos de gradient-boosting** (trabajan mejor con datos tabulares)
-   
-•⁠  ⁠LightGBM
+## Competición
 
-•⁠  ⁠⁠CatBoost
+[DrivenData - Richter's Predictor](https://www.drivendata.org/competitions/57/nepal-earthquake/)
 
-•⁠  ⁠⁠XGBoost
+## Autor
 
-## Primeros pasos realizados
-
-•⁠  ⁠Empezar con LightGBM o CatBoost (que manejan bien los datos categóricos)
-
-•⁠  ⁠⁠Usar las 38 variables
-
-•⁠  ⁠⁠Crear nuevas variables (geográficas, vulnerabilidad estructural)
-
-•⁠  ⁠⁠Afinar hiperparámetros con Optuna o hyperopt
-
-•⁠  ⁠⁠Crear 2-3 modelos (XGBoost + LightsGBM + CatBoost
-
-•⁠  ⁠⁠Usar una fórmula final ponderada de las predicciones 
-
-	- Ejemplo: final_prediction = 0.4 * lgbm_pred + 0.3 * xgb_pred + 0.3 * catboost_pred
-
-## Estructura:
-
-- **01_EDA.ipynb**: Tratamiento de datos y visualización básica de los datasets y variables.
-
-- **02_feature_engineering**: Creación de atributos/ingeniería de atributos. Nuevas variables explicativas.
-
-- **03_modeling**: Tres modelos básicos, LGBM, XGBoost y CatBoost. Ensemble (ponderado y sin ponderar) y Ensemble LGBM+XGBoost
-
-  - Mockup de submisssion
+Pablo Noguera Cantos - ML Engineer  
+Samsung Innovation Campus  
+[pnogueracantos@gmail.com]
 
 
