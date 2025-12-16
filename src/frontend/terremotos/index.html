@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Predictor de Daño Sísmico</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="index.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        
+        <h1 class="text-primary mb-4 text-center"> Richter's Predictor: Simulación de daño sísmico </h1>
+        <p class="text-center text-muted">Ajusta las características del edificio para predecir el <strong>Grado de daño (1 a 3)</strong>.</p>
+        
+        <form id="formulario-terremoto" class="needs-validation" novalidate>
+            
+            <div class="feature-group bg-light p-3 mb-4">
+                <h3 class="h6 text-primary">📋 Cargar datos CSV</h3>
+                <label for="csv-input" class="form-label small">Pega una fila de datos del CSV (e.g., `802906,6,487,...`) y haz clic en Cargar:</label>
+                <div class="input-group">
+                    <textarea id="csv-input" class="form-control" rows="1" placeholder="Pega aquí la fila de datos..."></textarea>
+                    <button type="button" class="btn btn-outline-secondary" id="load-csv-button">Cargar</button>
+                </div>
+                <p id="csv-message" class="small mt-2"></p>
+            </div>
+            <div class="feature-group">
+
+            <div class="feature-group">
+                <h3 class="h5 text-secondary">🗺️ 1. Ubicación y Geografía</h3>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="geo_level_1_id" class="form-label">Región (Nivel 1)</label>
+                        <select id="geo_level_1_id" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="geo_level_2_id" class="form-label">Sub-región (Nivel 2)</label>
+                        <select id="geo_level_2_id" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="geo_level_3_id" class="form-label">Zona específica (Nivel 3)</label>
+                        <select id="geo_level_3_id" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="land_surface_condition" class="form-label">Condición del suelo</label>
+                        <select id="land_surface_condition" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="position" class="form-label">Posición del edificio</label>
+                        <select id="position" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="legal_ownership_status" class="form-label">Estado legal de propiedad</label>
+                        <select id="legal_ownership_status" class="form-select" required></select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-group">
+                <h3 class="h5 text-secondary">🧱 2. Estructura y Construcción</h3>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label for="count_floors_pre_eq" class="form-label">N° Pisos</label>
+                        <input type="number" id="count_floors_pre_eq" class="form-control" value="2" min="1" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="age" class="form-label">Antigüedad (años)</label>
+                        <input type="number" id="age" class="form-control" value="20" min="0" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="area_percentage" class="form-label">Área (% Normalizada)</label>
+                        <input type="number" id="area_percentage" class="form-control" value="8" min="1" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="height_percentage" class="form-label">Altura (% Normalizada)</label>
+                        <input type="number" id="height_percentage" class="form-control" value="10" min="1" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="foundation_type" class="form-label">Tipo de cimentación</label>
+                        <select id="foundation_type" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="roof_type" class="form-label">Tipo de techo</label>
+                        <select id="roof_type" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="ground_floor_type" class="form-label">Tipo de planta baja</label>
+                        <select id="ground_floor_type" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="other_floor_type" class="form-label">Tipo de pisos superiores</label>
+                        <select id="other_floor_type" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="plan_configuration" class="form-label">Configuración del plano</label>
+                        <select id="plan_configuration" class="form-select" required></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="count_families" class="form-label">N° Familias</label>
+                        <input type="number" id="count_families" class="form-control" value="1" min="1" required>
+                    </div>
+                </div>
+                
+                <h4 class="h6 mt-4 text-primary">Superestructura (Selecciona todos los materiales presentes):</h4>
+                <div id="superstructure-container" class="d-flex flex-wrap justify-content-between"></div>
+            </div>
+
+            <div class="feature-group">
+                <h3 class="h5 text-secondary">🏡 3. Uso secundario:</h3>
+                <div id="secondary-use-container" class="d-flex flex-wrap justify-content-between">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input secondary-use-flag" type="radio" id="has_secondary_use" name="secondary-use">
+                        <label class="form-check-label" for="has_secondary_use">Uso secundario general</label>
+                    </div>
+                </div>
+                <span class="text-muted">ℹ Este campo se puede dejar vacío si no aplica.</span>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-primary btn-lg me-3" id="predict-button">Predecir daño</button>
+                <button type="reset" class="btn btn-danger btn-lg">Borrar formulario</button>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        <div id="resultado" class="text-center">
+            <h2 class="h3">Resultado de la predicción:</h2>
+            <div id="prediction-output" class="p-4 rounded shadow-sm">
+                <p class="mb-0 text-muted">Haz clic en "PREDECIR DAÑO" para obtener el resultado.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/variables.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
