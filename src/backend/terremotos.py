@@ -70,18 +70,51 @@ class ProcesoCaracteristicas:
             if col in df.columns:
                 df[col] = df[col].astype('category')
 
-        # 3. Ingeniería de Características
-        df['area_per_floor'] = df['area_percentage'] / df['count_floors_pre_eq']
-        df['area_per_floor'] = df['area_per_floor'].replace([np.inf, -np.inf], 0)
-        
-        df['height_per_floor'] = df['height_percentage'] / df['count_floors_pre_eq']
-        df['height_per_floor'] = df['height_per_floor'].replace([np.inf, -np.inf], 0)
-        
-        secondary_use_cols = [col for col in df.columns if 'has_secondary_use_' in col]
-        df['count_secondary_uses'] = df[secondary_use_cols].sum(axis=1)
+            # 3. Ingeniería de Características (MEJORADO - Alineado con notebooks)
+    
+    # ============ VULNERABILIDAD DE MATERIALES ============
+    weak_materials = [
+        'has_superstructure_mud_mortar_stone',
+        'has_superstructure_stone_flag',
+        'has_superstructure_adobe_mud',
+        'has_superstructure_mud_mortar_brick',
+        'has_superstructure_bamboo'
+    ]
+    df['weak_material_count'] = df[weak_materials].sum(axis=1)
+    
+    strong_materials = [
+        'has_superstructure_rc_engineered',
+        'has_superstructure_rc_non_engineered',
+        'has_superstructure_cement_mortar_brick',
+        'has_superstructure_cement_mortar_stone'
+    ]
+    df['strong_material_count'] = df[strong_materials].sum(axis=1)
+    df['vulnerability_score'] = df['weak_material_count'] - df['strong_material_count']
+    
+    # ============ CARACTERÍSTICAS ESTRUCTURALES ============
+    df['age_x_floors'] = df['age'] * df['count_floors_pre_eq']
+    df['height_area_ratio'] = df['height_percentage'] / (df['area_percentage'] + 1)
+    df['families_per_floor'] = df['count_families'] / (df['count_floors_pre_eq'] + 1)
+    
+    # ============ CATEGORÍAS DE EDAD ============
+    df['is_old'] = (df['age'] > 25).astype(int)
+    df['is_very_old'] = (df['age'] > 50).astype(int)
+    
+    # ============ TOTAL SUPERSTRUCTURE ============
+    superstructure_cols = [col for col in df.columns if 'has_superstructure' in col]
+    df['total_superstructure_types'] = df[superstructure_cols].sum(axis=1)
+    
+    # ============ SECONDARY USE ============
+    secondary_cols = [col for col in df.columns if 'has_secondary_use_' in col]
+    df['total_secondary_uses'] = df[secondary_cols].sum(axis=1)
+    
+    # ============ GEOGRAPHIC (MÁS IMPORTANTES) ============
+    high_risk_regions = [17, 18, 21, 8, 27, 28]
+    df['is_high_risk_region'] = df['geo_level_1_id'].isin(high_risk_regions).astype(int)
+    
+    low_risk_regions = [26, 24, 5, 20, 13, 1]
+    df['is_low_risk_region'] = df['geo_level_1_id'].isin(low_risk_regions).astype(int)
 
-        superstructure_cols = [col for col in df.columns if 'has_superstructure_' in col]
-        df['count_superstructure_materials'] = df[superstructure_cols].sum(axis=1)
 
         # 4. Asegurar el orden de las características
         if self.feature_order is not None:
